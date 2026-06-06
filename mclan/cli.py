@@ -50,6 +50,14 @@ def _confirm_eula(assume_yes: bool) -> bool:
 
 
 def cmd_up(args: argparse.Namespace) -> int:
+    # Wizard mode: beginner-friendly Q&A that fills in args, then launches.
+    if getattr(args, "wizard", False):
+        from .wizard import run_wizard
+        result = run_wizard(args)
+        if result is not None:
+            return result  # wizard exited early (no Java, declined EULA, etc.)
+        # else: fall through to launch with wizard-populated args
+
     server_dir = os.path.abspath(args.dir)
     os.makedirs(server_dir, exist_ok=True)
 
@@ -155,7 +163,9 @@ def build_parser() -> argparse.ArgumentParser:
         description="Pull-and-run LAN Minecraft server launcher (vanilla, official jars).",
     )
     p.add_argument("--version", action="version", version=f"mclan {__version__}")
-    sub = p.add_subparsers(dest="command", required=True)
+    # Subcommand is optional: running `mclan` alone launches the beginner wizard,
+    # so a double-clicked start script just works.
+    sub = p.add_subparsers(dest="command", required=False)
 
     up = sub.add_parser("up", help="download (if needed) and launch a LAN server")
     up.add_argument("--version", default="latest",
@@ -176,7 +186,13 @@ def build_parser() -> argparse.ArgumentParser:
     up.add_argument("--dry-run", action="store_true",
                     help="show the resolved plan without downloading or launching")
     up.add_argument("--quiet", action="store_true", help="suppress download progress")
-    up.set_defaults(func=cmd_up)
+    up.set_defaults(func=cmd_up, wizard=False)
+
+    # Beginner wizard: friendly Q&A, no flags to remember. Also the default when
+    # mclan is run with no subcommand at all (e.g. a double-clicked start script).
+    play = sub.add_parser("play", help="friendly step-by-step setup for beginners")
+    play.add_argument("--dir", default="server", help="server directory (default: ./server)")
+    play.set_defaults(func=cmd_up, wizard=True)
 
     vs = sub.add_parser("versions", help="list available Minecraft versions")
     vs.add_argument("--type", choices=["release", "snapshot", "all"], default="release",
@@ -190,4 +206,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    # No subcommand → launch the beginner wizard (e.g. double-clicked start script).
+    if getattr(args, "command", None) is None:
+        args = parser.parse_args(["play"] + ([] if argv is None else []))
     return args.func(args)

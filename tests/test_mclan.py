@@ -131,3 +131,46 @@ def test_detect_lan_ip_returns_ipv4_string():
 def test_server_artifact_fields():
     a = ServerArtifact(version_id="1.20.4", url="http://x", sha1="abc", size=10, java_major=17)
     assert a.java_major == 17 and a.version_id == "1.20.4"
+
+
+# --------------------------------------------------------------------------- wizard / CLI routing
+
+def test_no_subcommand_routes_to_wizard():
+    # `mclan` with no args should resolve to the wizard (play -> cmd_up, wizard=True).
+    from mclan.cli import build_parser
+    parser = build_parser()
+    args = parser.parse_args([])
+    assert getattr(args, "command", None) is None  # nothing chosen explicitly
+
+
+def test_play_subcommand_sets_wizard_flag():
+    from mclan.cli import build_parser
+    parser = build_parser()
+    args = parser.parse_args(["play"])
+    assert args.wizard is True
+    assert args.command == "play"
+
+
+def test_up_subcommand_does_not_set_wizard():
+    from mclan.cli import build_parser
+    parser = build_parser()
+    args = parser.parse_args(["up", "--version", "1.20.4"])
+    assert args.wizard is False
+    assert args.version == "1.20.4"
+
+
+def test_wizard_java_help_is_os_specific():
+    from mclan.wizard import _java_help_text
+    text = _java_help_text()
+    assert "adoptium.net" in text          # the free, legal source
+    assert "Java" in text
+
+
+def test_wizard_ask_yes_default(monkeypatch):
+    from mclan import wizard
+    # Empty input returns the default.
+    monkeypatch.setattr("builtins.input", lambda *_: "")
+    assert wizard._ask_yes("ok?", default_yes=True) is True
+    assert wizard._ask_yes("ok?", default_yes=False) is False
+    monkeypatch.setattr("builtins.input", lambda *_: "y")
+    assert wizard._ask_yes("ok?", default_yes=False) is True

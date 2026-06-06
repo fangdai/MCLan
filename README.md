@@ -11,8 +11,19 @@ no `server.properties` archaeology.
 
 ```bash
 git clone https://github.com/fangdai/mclan && cd mclan
-./start.sh --accept-eula            # Linux/macOS
-start.bat --accept-eula             # Windows
+./start.sh                          # Linux/macOS — answer a few simple questions
+start.bat                           # Windows — double-click it
+```
+
+New to this? **[Read the step-by-step beginner guide → GUIDE.md](GUIDE.md)** —
+written for someone who's never run a server before. Running with no options
+starts a friendly wizard that asks plain-language questions (just press Enter for
+safe defaults) and checks everything for you.
+
+Already comfortable? Skip the wizard:
+
+```bash
+./start.sh up --accept-eula --version 1.20.4 --memory 4096
 ```
 
 That's it. mclan figures out the rest and prints the address to share:
@@ -54,6 +65,8 @@ launch one whose checksum doesn't match.
 ## Usage
 
 ```bash
+python -m mclan                                 # beginner wizard (no flags needed)
+python -m mclan play                            # same wizard, explicitly
 python -m mclan up                              # latest release, ./server
 python -m mclan up --version 1.20.4 --memory 4096
 python -m mclan up --version snapshot --port 25566
