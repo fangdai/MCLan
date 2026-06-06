@@ -1,0 +1,32 @@
+# mclan runtime artifacts — never commit a downloaded server or a world.
+server/
+*.jar
+world/
+world_nether/
+world_the_end/
+logs/
+crash-reports/
+banned-*.json
+ops.json
+whitelist.json
+usercache.json
+eula.txt
+server.properties
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# uv (used only for local dev test runs, not a project dep)
+uv.lock

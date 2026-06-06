@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mclan"
+version = "0.1.0"
+description = "Pull-and-run LAN Minecraft server launcher (vanilla, official jars, zero dependencies)."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [{ name = "Phan Quang Dai" }]
+keywords = ["minecraft", "server", "lan", "launcher", "gaming"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Games/Entertainment",
+]
+# No runtime dependencies — standard library only.
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+mclan = "mclan.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/fangdai/mclan"
+
+[tool.setuptools]
+packages = ["mclan"]
