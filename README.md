@@ -5,24 +5,42 @@
 ![deps](https://img.shields.io/badge/dependencies-none-brightgreen)
 ![license](https://img.shields.io/badge/license-MIT-green)
 
-A pull-and-run LAN Minecraft server launcher. Clone it, run one command, and your
+A pull-and-run LAN Minecraft server launcher. Clone it, run one thing, and your
 friends on the same Wi-Fi are playing — no manual jar hunting, no EULA fiddling,
 no `server.properties` archaeology.
 
 ```bash
 git clone https://github.com/fangdai/mclan && cd mclan
-./start.sh                          # Linux/macOS — answer a few simple questions
-start.bat                           # Windows — double-click it
+start.bat                           # Windows — just double-click it
+./start.sh                          # Linux/macOS
 ```
 
-New to this? **[Read the step-by-step beginner guide → GUIDE.md](GUIDE.md)** —
-written for someone who's never run a server before. Running with no options
-starts a friendly wizard that asks plain-language questions (just press Enter for
-safe defaults) and checks everything for you.
+Then answer a few simple questions (or press Enter through them). That's it.
+
+### Nothing to install (well, almost)
+
+mclan ships in **two editions with identical features**, and the launcher picks
+the one that needs zero setup on your system:
+
+- **Windows → PowerShell edition** (`mclan.ps1`). PowerShell ships with every
+  modern Windows, so there's **nothing to install**. Double-click `start.bat`.
+- **macOS / Linux → Python edition** (`python -m mclan`). Python 3 is already on
+  nearly every Mac and Linux box, so again, **nothing to install**.
+
+The one thing mclan *can't* avoid is **Java** — a Minecraft server is a Java
+program, so a Java runtime is required no matter what launcher you use. mclan
+detects it and, if it's missing, prints exactly how to get it (free, from
+[Adoptium](https://adoptium.net)). It will not pirate the game or the runtime.
+
+New to all this? **[Read the step-by-step beginner guide → GUIDE.md](GUIDE.md)** —
+written for someone who's never run a server before.
 
 Already comfortable? Skip the wizard:
 
 ```bash
+# Windows (PowerShell edition)
+powershell -ExecutionPolicy Bypass -File mclan.ps1 up -Version 1.20.4 -Memory 4096
+# macOS/Linux (Python edition)
 ./start.sh up --accept-eula --version 1.20.4 --memory 4096
 ```
 

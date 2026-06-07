@@ -31,32 +31,37 @@ If money is the problem: ask whoever owns the game in your friend group to be th
 2. **Minecraft Java Edition** installed on it (from minecraft.net).
 3. **Java** — a free, separate program that runs the server. mclan checks this
    for you and tells you exactly how to install it if it's missing.
-4. **Python** — also free. Most Macs and Linux already have it. On Windows you
-   may need to install it once (steps below).
-5. Everyone playing must be on the **same Wi-Fi/network**.
+4. Everyone playing must be on the **same Wi-Fi/network**.
+
+That's the whole list. You do **not** need to install anything special to run
+mclan itself:
+
+- On **Windows**, mclan runs on PowerShell, which already comes with Windows.
+- On **Mac/Linux**, mclan runs on Python 3, which is already installed on
+  almost every Mac and Linux computer.
 
 ---
 
-## Step 1 — Install Python (one time)
-
-mclan is written in Python. Check if you already have it:
-
-- **Windows:** press Start, type `cmd`, hit Enter, then type `python --version`.
-  If it shows a version number (3.8 or higher), you're set. If not:
-  go to https://python.org/downloads, download Python, run the installer, and
-  **check the box that says "Add Python to PATH"** during install.
-- **Mac:** open Terminal, type `python3 --version`. If it's missing, install from
-  https://python.org/downloads.
-- **Linux:** you almost certainly have it. `python3 --version` to check.
-
-## Step 2 — Get mclan
+## Step 1 — Get mclan
 
 Download this project: on the GitHub page click the green **Code** button →
 **Download ZIP**. Unzip it somewhere easy to find, like your Desktop.
 
 (If you know `git`: `git clone https://github.com/fangdai/mclan`.)
 
-## Step 3 — Start the server
+### (Mac/Linux only) Check Python, just in case
+
+Almost every Mac/Linux already has it. To be sure, open Terminal and type
+`python3 --version`. If you see a number like `3.11.x`, you're set. If it says
+"command not found":
+
+- **Mac:** install from https://python.org/downloads (or `brew install python`).
+- **Debian/Ubuntu:** `sudo apt install python3`
+- **Fedora:** `sudo dnf install python3`
+
+Windows users can skip this entirely.
+
+## Step 2 — Start the server
 
 Open the `mclan` folder you just unzipped, then:
 
@@ -80,7 +85,7 @@ Your friends will join at:  192.168.1.197:25565
 
 **Write that address down.** That's what your friends type to join.
 
-## Step 4 — Friends join
+## Step 3 — Friends join
 
 Each friend, on the **same Wi-Fi**:
 
