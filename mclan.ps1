@@ -79,10 +79,34 @@ function Get-ServerArtifact {
 function Find-Java {
     param([int]$MinMajor, [string]$Explicit = '')
     $candidates = @()
-    if ($Explicit) { $candidates += $Explicit }
-    if ($env:JAVA_HOME) { $candidates += (Join-Path $env:JAVA_HOME 'bin\java.exe') }
+    if ($Explicit) {
+        if (Test-Path $Explicit -PathType Container) {
+            $candidates += (Join-Path $Explicit 'java.exe')
+            $candidates += (Join-Path $Explicit 'bin\java.exe')
+        } else {
+            $candidates += $Explicit
+        }
+    }
+    if ($env:JAVA_HOME) {
+        $candidates += (Join-Path $env:JAVA_HOME 'bin\java.exe')
+        $candidates += (Join-Path $env:JAVA_HOME 'java.exe')
+    }
     $onPath = (Get-Command java -ErrorAction SilentlyContinue)
     if ($onPath) { $candidates += $onPath.Source }
+    $roots = @($env:ProgramFiles, ${env:ProgramFiles(x86)}, $env:LOCALAPPDATA) | Where-Object { $_ }
+    $patterns = @(
+        'Eclipse Adoptium\*\bin\java.exe',
+        'Java\*\bin\java.exe',
+        'Microsoft\jdk-*\bin\java.exe',
+        'Amazon Corretto\*\bin\java.exe'
+    )
+    foreach ($root in $roots) {
+        foreach ($pattern in $patterns) {
+            foreach ($item in (Get-ChildItem -Path (Join-Path $root $pattern) -ErrorAction SilentlyContinue)) {
+                $candidates += $item.FullName
+            }
+        }
+    }
 
     $best = $null
     foreach ($cand in $candidates | Select-Object -Unique) {
@@ -92,7 +116,7 @@ function Find-Java {
         if (-not $best) { $best = $info }
     }
     if ($best) {
-        throw "Found Java $($best.Major), but this Minecraft version needs Java $MinMajor or newer. Install a newer JDK from https://adoptium.net and set JAVA_HOME."
+        throw "Found Java $($best.Major), but this Minecraft version needs Java $MinMajor or newer. Install Temurin Java $MinMajor+ from https://adoptium.net and enable 'Set JAVA_HOME variable' + 'Add to PATH'."
     }
     throw "NO_JAVA:$MinMajor"
 }

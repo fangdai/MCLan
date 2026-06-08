@@ -20,9 +20,8 @@ Design choices that matter for the target user:
 from __future__ import annotations
 
 import os
-import sys
 
-from .environment import JavaError, detect_lan_ip, find_java
+from .environment import JavaError, detect_lan_ip, find_java, install_java_help_text
 from .manifest import (
     ManifestError,
     fetch_version_manifest,
@@ -56,28 +55,10 @@ def _ask_yes(prompt: str, default_yes: bool = True) -> bool:
 
 def _java_help_text() -> str:
     """OS-specific, copy-pasteable instructions for installing free Java."""
-    if sys.platform.startswith("win"):
-        return (
-            "  Minecraft needs Java (free and legal). Easiest way on Windows:\n"
-            "    1. Go to https://adoptium.net\n"
-            "    2. Click the big download button (Temurin, latest LTS).\n"
-            "    3. Run the installer. IMPORTANT: on the 'Custom Setup' screen,\n"
-            "       turn ON 'Set JAVA_HOME variable' and 'Add to PATH'.\n"
-            "    4. Close this window, open it again, and re-run mclan."
-        )
-    if sys.platform == "darwin":
-        return (
-            "  Minecraft needs Java (free and legal). On a Mac:\n"
-            "    - With Homebrew:  brew install temurin\n"
-            "    - Or download from https://adoptium.net and run the installer.\n"
-            "    Then re-run mclan."
-        )
     return (
-        "  Minecraft needs Java (free and legal). On Linux:\n"
-        "    - Debian/Ubuntu:  sudo apt install default-jre\n"
-        "    - Fedora:         sudo dnf install java-latest-openjdk\n"
-        "    - Arch:           sudo pacman -S jre-openjdk\n"
-        "    Or download from https://adoptium.net. Then re-run mclan."
+        "  Minecraft needs Java (free and legal).\n"
+        f"  {install_java_help_text(8)}\n"
+        "  Then re-run mclan."
     )
 
 
