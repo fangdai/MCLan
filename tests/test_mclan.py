@@ -10,10 +10,13 @@ import os
 
 import pytest
 
-from mclan.environment import _parse_java_major, detect_lan_ip
+from mclan import environment
+from mclan.environment import _parse_java_major, detect_lan_ip, find_java, install_java_help_text
 from mclan.launcher import LaunchPlan
 from mclan.manifest import ManifestError, ServerArtifact, resolve_version, sha1_of_file
 from mclan.server import apply_lan_defaults, read_properties, write_eula
+
+TEST_JAVA_MAJOR = 21
 
 
 # --------------------------------------------------------------------------- java version parsing
@@ -32,6 +35,55 @@ def test_parse_java_major(text, expected):
 
 def test_parse_java_major_unparseable():
     assert _parse_java_major("no version here") is None
+
+
+def test_install_java_help_text_has_source():
+    text = install_java_help_text(17)
+    assert "adoptium" in text.lower()
+    assert "17" in text
+
+
+def test_find_java_accepts_java_home_like_explicit(monkeypatch):
+    seen = []
+
+    def fake_probe(path):
+        seen.append(path)
+        if path == "/custom/jdk/bin/java":
+            return environment.JavaInfo(
+                path=path,
+                major=TEST_JAVA_MAJOR,
+                raw_version=f'openjdk version "{TEST_JAVA_MAJOR}"',
+            )
+        return None
+
+    monkeypatch.setattr(environment, "probe_java", fake_probe)
+    monkeypatch.setattr(environment, "_common_java_candidates", lambda: [])
+    monkeypatch.setattr(environment.shutil, "which", lambda _: None)
+    monkeypatch.delenv("JAVA_HOME", raising=False)
+    monkeypatch.setattr(environment.os.path, "isdir", lambda p: p == "/custom/jdk")
+
+    info = find_java(17, explicit="/custom/jdk")
+    assert info.path == "/custom/jdk/bin/java"
+    assert "/custom/jdk/bin/java" in seen
+
+
+def test_find_java_uses_common_candidates(monkeypatch):
+    def fake_probe(path):
+        if path == "/opt/jdk-21/bin/java":
+            return environment.JavaInfo(
+                path=path,
+                major=TEST_JAVA_MAJOR,
+                raw_version=f'openjdk version "{TEST_JAVA_MAJOR}"',
+            )
+        return None
+
+    monkeypatch.setattr(environment, "probe_java", fake_probe)
+    monkeypatch.setattr(environment.shutil, "which", lambda _: None)
+    monkeypatch.setattr(environment, "_common_java_candidates", lambda: ["/opt/jdk-21/bin/java"])
+    monkeypatch.delenv("JAVA_HOME", raising=False)
+
+    info = find_java(17)
+    assert info.path == "/opt/jdk-21/bin/java"
 
 
 # --------------------------------------------------------------------------- version resolution
@@ -161,7 +213,7 @@ def test_up_subcommand_does_not_set_wizard():
 
 def test_wizard_java_help_is_os_specific():
     from mclan.wizard import _java_help_text
-    text = _java_help_text()
+    text = _java_help_text(17)
     assert "adoptium.net" in text          # the free, legal source
     assert "Java" in text
 

@@ -8,10 +8,13 @@ here with only the standard library, across Windows/macOS/Linux.
 
 from __future__ import annotations
 
+import glob
+import os
 import re
 import shutil
 import socket
 import subprocess
+import sys
 from dataclasses import dataclass
 
 
@@ -26,6 +29,103 @@ class JavaInfo:
 
 class JavaError(RuntimeError):
     """Raised when no suitable Java runtime can be found."""
+
+
+def _java_exe_name() -> str:
+    return "java.exe" if os.name == "nt" else "java"
+
+
+def _expand_java_hint(path_hint: str) -> list[str]:
+    """Expand a user/env hint into likely java executable paths."""
+    if not path_hint:
+        return []
+    hint = path_hint.strip().strip('"')
+    if not hint:
+        return []
+    if os.path.isdir(hint):
+        exe = _java_exe_name()
+        return [os.path.join(hint, exe), os.path.join(hint, "bin", exe)]
+    return [hint]
+
+
+def _common_java_candidates() -> list[str]:
+    """Common JDK install locations when JAVA_HOME/PATH are not configured."""
+    if os.name == "nt":
+        roots = [
+            os.environ.get("ProgramFiles"),
+            os.environ.get("ProgramFiles(x86)"),
+            os.environ.get("LOCALAPPDATA"),
+        ]
+        patterns = [
+            "Eclipse Adoptium/*/bin/java.exe",
+            "Java/*/bin/java.exe",
+            "Microsoft/jdk-*/bin/java.exe",
+            "Amazon Corretto/*/bin/java.exe",
+        ]
+        matches: list[str] = []
+        for root in roots:
+            if not root:
+                continue
+            for pat in patterns:
+                matches.extend(glob.glob(os.path.join(root, pat)))
+        return matches
+
+    matches = []
+    if sys.platform == "darwin":
+        patterns = [
+            "/Library/Java/JavaVirtualMachines/*/Contents/Home/bin/java",
+            "/opt/homebrew/opt/*/libexec/openjdk.jdk/Contents/Home/bin/java",
+            "/usr/local/opt/*/libexec/openjdk.jdk/Contents/Home/bin/java",
+        ]
+        for pat in patterns:
+            matches.extend(glob.glob(pat))
+        # Apple's helper can point to an installed JDK even if java isn't on PATH.
+        try:
+            proc = subprocess.run(
+                ["/usr/libexec/java_home"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+                check=False,
+            )
+            home = (proc.stdout or "").strip()
+            if proc.returncode == 0 and home:
+                matches.append(os.path.join(home, "bin", "java"))
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+        return matches
+
+    patterns = [
+        "/usr/lib/jvm/*/bin/java",
+        "/usr/java/*/bin/java",
+        "/opt/java/*/bin/java",
+        "/opt/jdk*/bin/java",
+    ]
+    for pat in patterns:
+        matches.extend(glob.glob(pat))
+    return matches
+
+
+def install_java_help_text(min_major: int) -> str:
+    """OS-specific Java installation guidance."""
+    if sys.platform.startswith("win"):
+        return (
+            "Install Temurin Java "
+            f"{min_major}+ from https://adoptium.net, and enable "
+            "'Set JAVA_HOME variable' and 'Add to PATH' in the installer."
+        )
+    if sys.platform == "darwin":
+        return (
+            f"Install Java {min_major}+ with Homebrew: brew install --cask temurin "
+            "(or pick Temurin "
+            f"{min_major}+ from https://adoptium.net)."
+        )
+    return (
+        f"Install Java {min_major}+ with your package manager "
+        "(Debian/Ubuntu: sudo apt install default-jre; "
+        "Fedora: sudo dnf install java-latest-openjdk; "
+        "Arch: sudo pacman -S jre-openjdk), or use https://adoptium.net."
+    )
 
 
 def _parse_java_major(version_output: str) -> int | None:
@@ -71,18 +171,16 @@ def find_java(min_major: int, explicit: str | None = None) -> JavaInfo:
     Search order: an explicit path/env, ``JAVA_HOME``, then ``java`` on PATH.
     Raises :class:`JavaError` with actionable guidance if nothing suitable exists.
     """
-    import os
-
     candidates: list[str] = []
     if explicit:
-        candidates.append(explicit)
+        candidates.extend(_expand_java_hint(explicit))
     java_home = os.environ.get("JAVA_HOME")
     if java_home:
-        exe = "java.exe" if os.name == "nt" else "java"
-        candidates.append(os.path.join(java_home, "bin", exe))
+        candidates.extend(_expand_java_hint(java_home))
     on_path = shutil.which("java")
     if on_path:
         candidates.append(on_path)
+    candidates.extend(_common_java_candidates())
 
     seen = set()
     best: JavaInfo | None = None
@@ -100,13 +198,13 @@ def find_java(min_major: int, explicit: str | None = None) -> JavaInfo:
     if best is not None:
         raise JavaError(
             f"found Java {best.major} at {best.path}, but this Minecraft version "
-            f"needs Java {min_major}+. Install a newer JDK (e.g. Temurin {min_major}) "
-            f"and set JAVA_HOME, or pass --java <path>."
+            f"needs Java {min_major}+. {install_java_help_text(min_major)} "
+            "You can also pass --java <path>."
         )
     raise JavaError(
         "no Java runtime found. Install a JDK "
-        f"(Java {min_major}+ for this version), e.g. from https://adoptium.net, "
-        "then re-run. Set JAVA_HOME or pass --java <path> if it's not on PATH."
+        f"(Java {min_major}+ for this version). {install_java_help_text(min_major)} "
+        "Then re-run. You can also set JAVA_HOME or pass --java <path>."
     )
 
 
