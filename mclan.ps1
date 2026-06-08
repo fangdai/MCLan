@@ -116,7 +116,7 @@ function Find-Java {
         if (-not $best) { $best = $info }
     }
     if ($best) {
-        throw "Found Java $($best.Major), but this Minecraft version needs Java $MinMajor or newer. Install Temurin Java $MinMajor+ from https://adoptium.net and enable 'Set JAVA_HOME variable' + 'Add to PATH'."
+        throw "Found Java $($best.Major), but this Minecraft version needs Java $MinMajor or newer. Install Temurin Java $MinMajor+ from https://adoptium.net and enable both 'Set JAVA_HOME variable' and 'Add to PATH'."
     }
     throw "NO_JAVA:$MinMajor"
 }

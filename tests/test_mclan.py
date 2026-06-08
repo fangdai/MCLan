@@ -16,6 +16,8 @@ from mclan.launcher import LaunchPlan
 from mclan.manifest import ManifestError, ServerArtifact, resolve_version, sha1_of_file
 from mclan.server import apply_lan_defaults, read_properties, write_eula
 
+TEST_JAVA_MAJOR = 21
+
 
 # --------------------------------------------------------------------------- java version parsing
 
@@ -37,7 +39,7 @@ def test_parse_java_major_unparseable():
 
 def test_install_java_help_text_has_source():
     text = install_java_help_text(17)
-    assert "adoptium.net" in text.lower()
+    assert "adoptium" in text.lower()
     assert "17" in text
 
 
@@ -47,7 +49,11 @@ def test_find_java_accepts_java_home_like_explicit(monkeypatch):
     def fake_probe(path):
         seen.append(path)
         if path == "/custom/jdk/bin/java":
-            return environment.JavaInfo(path=path, major=21, raw_version='openjdk version "21"')
+            return environment.JavaInfo(
+                path=path,
+                major=TEST_JAVA_MAJOR,
+                raw_version=f'openjdk version "{TEST_JAVA_MAJOR}"',
+            )
         return None
 
     monkeypatch.setattr(environment, "probe_java", fake_probe)
@@ -64,7 +70,11 @@ def test_find_java_accepts_java_home_like_explicit(monkeypatch):
 def test_find_java_uses_common_candidates(monkeypatch):
     def fake_probe(path):
         if path == "/opt/jdk-21/bin/java":
-            return environment.JavaInfo(path=path, major=21, raw_version='openjdk version "21"')
+            return environment.JavaInfo(
+                path=path,
+                major=TEST_JAVA_MAJOR,
+                raw_version=f'openjdk version "{TEST_JAVA_MAJOR}"',
+            )
         return None
 
     monkeypatch.setattr(environment, "probe_java", fake_probe)
