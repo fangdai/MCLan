@@ -86,6 +86,7 @@ def _common_java_candidates() -> list[str]:
                 capture_output=True,
                 text=True,
                 timeout=5,
+                check=False,
             )
             home = (proc.stdout or "").strip()
             if proc.returncode == 0 and home:
@@ -115,7 +116,7 @@ def install_java_help_text(min_major: int) -> str:
         )
     if sys.platform == "darwin":
         return (
-            f"Install Java {min_major}+ with Homebrew: brew install --cask temurin "
+            f"Install Java {min_major}+ with Homebrew: brew install --cask temurin@{min_major} "
             "(or use the installer from https://adoptium.net)."
         )
     return (

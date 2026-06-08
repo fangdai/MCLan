@@ -53,11 +53,11 @@ def _ask_yes(prompt: str, default_yes: bool = True) -> bool:
     return answer in ("y", "yes")
 
 
-def _java_help_text() -> str:
+def _java_help_text(min_major: int) -> str:
     """OS-specific, copy-pasteable instructions for installing free Java."""
     return (
         "  Minecraft needs Java (free and legal).\n"
-        f"  {install_java_help_text(8)}\n"
+        f"  {install_java_help_text(min_major)}\n"
         "  Then re-run mclan."
     )
 
@@ -106,7 +106,7 @@ def run_wizard(args) -> int:
         print(f"  Found Java {java.major}. Good to go.\n")
     except JavaError:
         print("  You don't have the right Java yet.\n")
-        print(_java_help_text())
+        print(_java_help_text(artifact.java_major))
         print(f"\n  (This version needs Java {artifact.java_major} or newer.)")
         return 3
 

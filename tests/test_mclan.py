@@ -213,7 +213,7 @@ def test_up_subcommand_does_not_set_wizard():
 
 def test_wizard_java_help_is_os_specific():
     from mclan.wizard import _java_help_text
-    text = _java_help_text()
+    text = _java_help_text(17)
     assert "adoptium.net" in text          # the free, legal source
     assert "Java" in text
 
