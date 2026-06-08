@@ -116,8 +116,9 @@ def install_java_help_text(min_major: int) -> str:
         )
     if sys.platform == "darwin":
         return (
-            f"Install Java {min_major}+ with Homebrew: brew install --cask temurin@{min_major} "
-            "(or use the installer from https://adoptium.net)."
+            f"Install Java {min_major}+ with Homebrew: brew install --cask temurin "
+            "(or pick Temurin "
+            f"{min_major}+ from https://adoptium.net)."
         )
     return (
         f"Install Java {min_major}+ with your package manager "
